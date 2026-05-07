@@ -14,7 +14,7 @@ y recibe recetas detalladas. Backend Python/Flask + Frontend HTML/CSS/JS.
 - app.py → servidor Flask y lógica del agente
 - templates/index.html → interfaz de chat
 - static/style.css → estilos
-- .env → ANTHROPIC_API_KEY (ya existe, no tocar)
+- .env → ANTHROPIC_API_KEY 
 
 ## Reglas
 - Siempre planificá antes de codear
