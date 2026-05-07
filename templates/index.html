@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chef IA — Tu asistente de cocina</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar (desktop only) -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-brand">
+                    <div class="brand-icon">👨‍🍳</div>
+                    <span>Chef IA</span>
+                </div>
+                <button id="new-chat-btn">+ Nueva</button>
+            </div>
+            <div class="sidebar-list" id="chat-history-list">
+                <!-- Se llena con JS desde localStorage -->
+            </div>
+        </aside>
+
+        <!-- Main chat area -->
+        <div class="chat-area">
+            <!-- Mobile header -->
+            <header class="mobile-header">
+                <button id="menu-btn" class="icon-btn">☰</button>
+                <span class="mobile-title">Chef IA</span>
+                <div class="mobile-header-right">
+                    <button id="profile-btn-mobile" class="icon-btn" title="Mi perfil">👤</button>
+                    <button id="new-chat-mobile" class="icon-btn">+</button>
+                </div>
+            </header>
+
+            <!-- Desktop memory button (floating) -->
+            <button id="profile-btn-desktop" class="profile-toggle-desktop" title="Mi perfil alimentario">
+                👤 Mi perfil
+            </button>
+
+            <!-- Chat messages -->
+            <main id="chat-container">
+                <!-- Welcome screen -->
+                <div class="welcome-screen" id="welcome-screen">
+                    <div class="welcome-content">
+                        <h1 class="welcome-title">¿Qué cocinamos hoy? 👨‍🍳</h1>
+                        <p class="welcome-subtitle">Tu chef personal con IA</p>
+
+                        <div class="welcome-banner">
+                            <div class="banner-text">
+                                <span class="banner-title">What's cooking today?</span>
+                                <span class="banner-desc">Ingredientes → Recetas en segundos</span>
+                            </div>
+                            <button class="banner-btn" id="banner-start-btn">Empezar</button>
+                        </div>
+
+                        <div class="category-chips">
+                            <button class="chip" data-msg="Quiero una receta healthy y nutritiva">🥗 Healthy</button>
+                            <button class="chip" data-msg="Necesito algo rápido de máximo 15 minutos">⚡ 15 min</button>
+                            <button class="chip" data-msg="Quiero hacer un postre fácil">🍰 Postres</button>
+                            <button class="chip" data-msg="Dame una receta vegana">🌱 Vegano</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Input bar -->
+            <footer class="input-bar">
+                <div id="image-preview" class="image-preview hidden">
+                    <img id="preview-img" src="" alt="Preview">
+                    <span class="preview-label">Imagen lista</span>
+                    <button id="remove-image" class="remove-img-btn">✕</button>
+                </div>
+                <form id="chat-form" class="input-form">
+                    <label class="camera-btn" title="Subir foto">
+                        📷
+                        <input type="file" id="image-input" accept="image/*" hidden>
+                    </label>
+                    <button type="button" id="mic-btn" class="mic-btn" title="Mensaje de voz">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                    </button>
+                    <input type="text" id="message-input" placeholder="Escribí tus ingredientes o preguntá algo..." autocomplete="off">
+                    <button type="submit" id="send-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </form>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Profile panel (right side) -->
+    <aside class="profile-panel hidden" id="profile-panel">
+        <div class="profile-panel-header">
+            <h3>Mi perfil alimentario</h3>
+            <button id="close-profile" class="icon-btn">✕</button>
+        </div>
+        <div class="profile-panel-body">
+            <div class="profile-section">
+                <h4>Restricciones alimentarias</h4>
+                <label class="toggle-row">
+                    <span>Sin gluten / TACC</span>
+                    <input type="checkbox" id="pf-celiaco" class="toggle-input">
+                    <span class="toggle-slider"></span>
+                </label>
+                <label class="toggle-row">
+                    <span>Vegano</span>
+                    <input type="checkbox" id="pf-vegano" class="toggle-input">
+                    <span class="toggle-slider"></span>
+                </label>
+                <label class="toggle-row">
+                    <span>Vegetariano</span>
+                    <input type="checkbox" id="pf-vegetariano" class="toggle-input">
+                    <span class="toggle-slider"></span>
+                </label>
+                <label class="toggle-row">
+                    <span>Sin lactosa</span>
+                    <input type="checkbox" id="pf-lactosa" class="toggle-input">
+                    <span class="toggle-slider"></span>
+                </label>
+                <label class="toggle-row">
+                    <span>Sin frutos secos</span>
+                    <input type="checkbox" id="pf-frutos" class="toggle-input">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="profile-section">
+                <h4>Tiempo de preparación</h4>
+                <select id="pf-tiempo" class="profile-select">
+                    <option value="sin_limite">Sin límite</option>
+                    <option value="15 min">15 min</option>
+                    <option value="30 min">30 min</option>
+                    <option value="60 min">60 min</option>
+                </select>
+            </div>
+            <div class="profile-section">
+                <h4>Dificultad preferida</h4>
+                <select id="pf-dificultad" class="profile-select">
+                    <option value="cualquiera">Cualquiera</option>
+                    <option value="Fácil">Fácil</option>
+                    <option value="Medio">Medio</option>
+                    <option value="Difícil">Difícil</option>
+                </select>
+            </div>
+        </div>
+        <div class="profile-panel-footer">
+            <button id="save-profile-btn" class="save-profile-btn">Guardar perfil</button>
+        </div>
+    </aside>
+
+    <!-- Overlays -->
+    <div class="sidebar-overlay hidden" id="sidebar-overlay"></div>
+    <div class="profile-overlay hidden" id="profile-overlay"></div>
+
+    <script>
+        const chatContainer = document.getElementById("chat-container");
+        const chatForm = document.getElementById("chat-form");
+        const messageInput = document.getElementById("message-input");
+        const imageInput = document.getElementById("image-input");
+        const imagePreview = document.getElementById("image-preview");
+        const previewImg = document.getElementById("preview-img");
+        const removeImageBtn = document.getElementById("remove-image");
+        const newChatBtn = document.getElementById("new-chat-btn");
+        const newChatMobile = document.getElementById("new-chat-mobile");
+        const welcomeScreen = document.getElementById("welcome-screen");
+        const menuBtn = document.getElementById("menu-btn");
+        const sidebar = document.getElementById("sidebar");
+        const sidebarOverlay = document.getElementById("sidebar-overlay");
+        const chatHistoryList = document.getElementById("chat-history-list");
+        const bannerStartBtn = document.getElementById("banner-start-btn");
+        const profilePanel = document.getElementById("profile-panel");
+        const profileOverlay = document.getElementById("profile-overlay");
+        const profileBtnDesktop = document.getElementById("profile-btn-desktop");
+        const profileBtnMobile = document.getElementById("profile-btn-mobile");
+        const closeProfileBtn = document.getElementById("close-profile");
+        const saveProfileBtn = document.getElementById("save-profile-btn");
+
+        const micBtn = document.getElementById("mic-btn");
+
+        let selectedImage = null;
+        let currentChatId = null;
+        let isRecording = false;
+        let recognition = null;
+        let chats = JSON.parse(localStorage.getItem("chef-ia-chats") || "{}");
+
+        // --- Historial en localStorage ---
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).slice(2);
+        }
+
+        function saveChats() {
+            localStorage.setItem("chef-ia-chats", JSON.stringify(chats));
+        }
+
+        function getCurrentChat() {
+            if (!currentChatId || !chats[currentChatId]) {
+                currentChatId = generateId();
+                chats[currentChatId] = { messages: [], preview: "" };
+                saveChats();
+            }
+            return chats[currentChatId];
+        }
+
+        function renderChatHistory() {
+            chatHistoryList.innerHTML = "";
+            const ids = Object.keys(chats).reverse();
+            ids.forEach(id => {
+                const chat = chats[id];
+                if (!chat.preview) return;
+                const item = document.createElement("div");
+                item.className = `history-item ${id === currentChatId ? "active" : ""}`;
+                item.innerHTML = `<span class="history-icon">💬</span><span class="history-text">${chat.preview}</span>`;
+                item.addEventListener("click", () => loadChat(id));
+                chatHistoryList.appendChild(item);
+            });
+        }
+
+        function loadChat(id) {
+            currentChatId = id;
+            const chat = chats[id];
+            clearChatUI();
+            hideWelcome();
+            chat.messages.forEach(msg => {
+                if (msg.role === "user") {
+                    addMessage(msg.text, "user", false);
+                } else {
+                    addMessage(msg.text, "assistant", false);
+                }
+            });
+            renderChatHistory();
+            closeSidebar();
+        }
+
+        function startNewChat() {
+            currentChatId = generateId();
+            chats[currentChatId] = { messages: [], preview: "" };
+            saveChats();
+            clearChatUI();
+            showWelcome();
+            renderChatHistory();
+            closeSidebar();
+            fetch("/api/reset", { method: "POST" });
+        }
+
+        // --- UI Helpers ---
+        function hideWelcome() {
+            if (welcomeScreen) welcomeScreen.style.display = "none";
+        }
+
+        function showWelcome() {
+            if (welcomeScreen) welcomeScreen.style.display = "flex";
+        }
+
+        function clearChatUI() {
+            const messages = chatContainer.querySelectorAll(".message");
+            messages.forEach(m => m.remove());
+        }
+
+        function renderMarkdown(text) {
+            return marked.parse(text);
+        }
+
+        function formatRecipeResponse(html) {
+            // Quitar imágenes sueltas
+            html = html.replace(/<p>\s*<img[^>]*>\s*<\/p>/gi, "");
+            html = html.replace(/<img[^>]*>/gi, "");
+
+            // Convertir líneas [META] en chips
+            html = html.replace(/<p>\[META\]\s*(.+?)<\/p>/gi, (match, metaContent) => {
+                const parts = metaContent.split("|").map(p => p.trim());
+                let chips = '<div class="recipe-chips">';
+                parts.forEach(part => {
+                    const [key, ...valParts] = part.split(":");
+                    const val = valParts.join(":").trim();
+                    if (!key || !val) return;
+                    const k = key.trim().toLowerCase();
+                    let emoji = "";
+                    let cls = "";
+                    if (k.includes("tiempo")) { emoji = "⏱"; cls = "chip-time"; }
+                    else if (k.includes("dificultad")) { emoji = "📊"; cls = "chip-diff"; }
+                    else if (k.includes("porciones")) { emoji = "🍽"; cls = "chip-portions"; }
+                    else if (k.includes("calor")) { emoji = "🔥"; cls = "chip-cal"; }
+                    else if (k.includes("fit")) {
+                        const isFit = val.toLowerCase().startsWith("s");
+                        emoji = isFit ? "✅" : "❌";
+                        cls = isFit ? "chip-fit" : "chip-nofit";
+                        chips += `<span class="recipe-chip ${cls}">${emoji} ${isFit ? "Fit" : "No fit"}</span>`;
+                        return;
+                    }
+                    else if (k.includes("dieta")) {
+                        if (val.toLowerCase() !== "ninguna" && val.toLowerCase() !== "no aplica") {
+                            val.split(",").forEach(d => {
+                                chips += `<span class="recipe-chip chip-diet">${d.trim()}</span>`;
+                            });
+                        }
+                        return;
+                    }
+                    chips += `<span class="recipe-chip ${cls}">${emoji} ${val}</span>`;
+                });
+                chips += '</div>';
+                return chips;
+            });
+
+            // Colorear secciones de ingredientes
+            html = html.replace(/<h3>Ingredientes que ten[ée]s<\/h3>/gi,
+                '<h3 class="ingredients-have">Ingredientes que tenés</h3>');
+            html = html.replace(/<h3>Ingredientes que te faltan<\/h3>/gi,
+                '<h3 class="ingredients-missing">Ingredientes que te faltan</h3>');
+
+            return html;
+        }
+
+        function addMessage(content, role, save = true) {
+            hideWelcome();
+            const div = document.createElement("div");
+            div.className = `message ${role}`;
+
+            const contentDiv = document.createElement("div");
+            contentDiv.className = "message-content";
+
+            if (role === "assistant") {
+                contentDiv.innerHTML = formatRecipeResponse(renderMarkdown(content));
+            } else {
+                contentDiv.textContent = content;
+            }
+
+            div.appendChild(contentDiv);
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            if (save) {
+                const chat = getCurrentChat();
+                chat.messages.push({ role, text: content });
+                if (role === "user" && !chat.preview) {
+                    chat.preview = content.slice(0, 50);
+                }
+                saveChats();
+                renderChatHistory();
+            }
+        }
+
+        function addImageMessage(file, text) {
+            hideWelcome();
+            const div = document.createElement("div");
+            div.className = "message user";
+
+            const contentDiv = document.createElement("div");
+            contentDiv.className = "message-content";
+
+            const img = document.createElement("img");
+            img.src = URL.createObjectURL(file);
+            img.className = "chat-image";
+            contentDiv.appendChild(img);
+
+            if (text) {
+                const p = document.createElement("p");
+                p.textContent = text;
+                contentDiv.appendChild(p);
+            }
+
+            div.appendChild(contentDiv);
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            const chat = getCurrentChat();
+            chat.messages.push({ role: "user", text: text || "[Imagen enviada]" });
+            if (!chat.preview) chat.preview = text || "📷 Foto de ingredientes";
+            saveChats();
+            renderChatHistory();
+        }
+
+        function showLoading() {
+            const div = document.createElement("div");
+            div.className = "message assistant loading";
+            div.id = "loading-msg";
+            div.innerHTML = `
+                <div class="message-content">
+                    <div class="loading-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>`;
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function removeLoading() {
+            const el = document.getElementById("loading-msg");
+            if (el) el.remove();
+        }
+
+        // --- API calls ---
+        async function sendTextMessage(message) {
+            const res = await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message }),
+            });
+            return await res.json();
+        }
+
+        async function sendImageMessage(file, message) {
+            const formData = new FormData();
+            formData.append("image", file);
+            formData.append("message", message);
+            const res = await fetch("/api/chat-image", { method: "POST", body: formData });
+            return await res.json();
+        }
+
+        // --- Event listeners ---
+        chatForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (!message && !selectedImage) return;
+
+            if (selectedImage) {
+                addImageMessage(selectedImage, message);
+            } else {
+                addMessage(message, "user");
+            }
+
+            messageInput.value = "";
+            showLoading();
+
+            try {
+                let data;
+                if (selectedImage) {
+                    data = await sendImageMessage(selectedImage, message);
+                    selectedImage = null;
+                    imagePreview.classList.add("hidden");
+                    imageInput.value = "";
+                } else {
+                    data = await sendTextMessage(message);
+                }
+                removeLoading();
+                if (data.error) {
+                    addMessage("❌ Error: " + data.error, "assistant");
+                } else {
+                    addMessage(data.response, "assistant");
+                }
+            } catch (err) {
+                removeLoading();
+                addMessage("❌ Error de conexión. Intentá de nuevo.", "assistant");
+            }
+        });
+
+        // Chips de categoría
+        document.querySelectorAll(".chip").forEach(chip => {
+            chip.addEventListener("click", () => {
+                messageInput.value = chip.dataset.msg;
+                chatForm.dispatchEvent(new Event("submit"));
+            });
+        });
+
+        // Banner start button
+        bannerStartBtn.addEventListener("click", () => {
+            messageInput.focus();
+        });
+
+        // Image handling
+        imageInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                selectedImage = file;
+                previewImg.src = URL.createObjectURL(file);
+                imagePreview.classList.remove("hidden");
+            }
+        });
+
+        removeImageBtn.addEventListener("click", () => {
+            selectedImage = null;
+            imagePreview.classList.add("hidden");
+            imageInput.value = "";
+        });
+
+        // New chat
+        newChatBtn.addEventListener("click", startNewChat);
+        newChatMobile.addEventListener("click", startNewChat);
+
+        // Mobile sidebar toggle
+        menuBtn.addEventListener("click", () => {
+            sidebar.classList.add("open");
+            sidebarOverlay.classList.remove("hidden");
+        });
+
+        function closeSidebar() {
+            sidebar.classList.remove("open");
+            sidebarOverlay.classList.add("hidden");
+        }
+
+        sidebarOverlay.addEventListener("click", closeSidebar);
+
+        // --- Profile panel ---
+        const profileFields = {
+            "pf-celiaco": "celiaco",
+            "pf-vegano": "vegano",
+            "pf-vegetariano": "vegetariano",
+            "pf-lactosa": "intolerante_lactosa",
+            "pf-frutos": "alergico_frutos_secos",
+        };
+
+        async function loadProfile() {
+            try {
+                const res = await fetch("/api/profile");
+                const profile = await res.json();
+                for (const [elemId, key] of Object.entries(profileFields)) {
+                    document.getElementById(elemId).checked = !!profile[key];
+                }
+                document.getElementById("pf-tiempo").value = profile.tiempo_maximo || "sin_limite";
+                document.getElementById("pf-dificultad").value = profile.dificultad || "cualquiera";
+            } catch (e) {
+                console.error("Error cargando perfil", e);
+            }
+        }
+
+        async function saveProfile() {
+            const data = {};
+            for (const [elemId, key] of Object.entries(profileFields)) {
+                data[key] = document.getElementById(elemId).checked;
+            }
+            data.tiempo_maximo = document.getElementById("pf-tiempo").value;
+            data.dificultad = document.getElementById("pf-dificultad").value;
+
+            try {
+                await fetch("/api/profile", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                });
+                closeProfile();
+            } catch (e) {
+                console.error("Error guardando perfil", e);
+            }
+        }
+
+        function openProfile() {
+            loadProfile();
+            profilePanel.classList.remove("hidden");
+            profileOverlay.classList.remove("hidden");
+        }
+
+        function closeProfile() {
+            profilePanel.classList.add("hidden");
+            profileOverlay.classList.add("hidden");
+        }
+
+        profileBtnDesktop.addEventListener("click", openProfile);
+        profileBtnMobile.addEventListener("click", openProfile);
+        closeProfileBtn.addEventListener("click", closeProfile);
+        profileOverlay.addEventListener("click", closeProfile);
+        saveProfileBtn.addEventListener("click", saveProfile);
+
+        // --- Voice input (Web Speech API) ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = "es-AR";
+            recognition.interimResults = true;
+            recognition.continuous = false;
+
+            recognition.onresult = (event) => {
+                let transcript = "";
+                for (let i = 0; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                messageInput.value = transcript;
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                micBtn.classList.remove("recording");
+                if (messageInput.value.trim()) {
+                    chatForm.dispatchEvent(new Event("submit"));
+                }
+            };
+
+            recognition.onerror = (event) => {
+                isRecording = false;
+                micBtn.classList.remove("recording");
+                if (event.error === "not-allowed") {
+                    alert("Permiso de micrófono denegado. Habilitalo en la configuración del navegador.");
+                }
+            };
+
+            micBtn.addEventListener("click", () => {
+                if (isRecording) {
+                    recognition.stop();
+                } else {
+                    messageInput.value = "";
+                    recognition.start();
+                    isRecording = true;
+                    micBtn.classList.add("recording");
+                }
+            });
+        } else {
+            micBtn.style.display = "none";
+        }
+
+        // Init
+        renderChatHistory();
+        messageInput.focus();
+    </script>
+</body>
+</html>

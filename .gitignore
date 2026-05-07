@@ -1,0 +1,26 @@
+# Variables de entorno
+.env
+
+# Datos de usuario
+profile.json
+memory.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
