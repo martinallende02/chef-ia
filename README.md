@@ -25,7 +25,7 @@ La app tiene dos pantallas principales:
 
 - Python 3.9+
 - Una API key de [Anthropic](https://console.anthropic.com/)
-- (Opcional) Una API key de [Spoonacular](https://spoonacular.com/food-api) para mas resultados de recetas
+- Una API key de [Spoonacular](https://spoonacular.com/food-api) para mas resultados de recetas
 
 ### Pasos
 
